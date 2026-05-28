@@ -1,0 +1,36 @@
+name: DelphiDay CD Simple Pipeline
+
+# 1. Trigger the workflow only on push to the main branch
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  deploy_job:
+    # 2. Force the execution on your specific local runner
+    runs-on: self-hosted
+
+    steps:
+    # 3. Pull the latest code and assets from the repository
+    - name: Checkout Source Code
+      uses: actions/checkout@v4
+
+    # 4. Verification Step: Ensure the executable was compiled via IDE
+    - name: Verify Compiled Binary
+      run: |
+        if (Test-Path "Win32\Release\DelphiDayDemo.exe") {
+            Write-Host "Success: DelphiDayDemo.exe found and verified!"
+        } else {
+            Write-Error "Error: Executable not found. Did you forget to build in Release mode inside RAD Studio?"
+            exit 1
+        }
+      shell: powershell
+
+    # 5. Deployment Step: Copy the binary to the production environment
+    - name: Deploy to Live Server
+      run: |
+        Write-Host "Deploying executable to production environment..."
+        # Copying the file and overwriting any existing version cleanly
+        xcopy /y "Win32\Release\DelphiDayDemo.exe" "C:\LiveServer\bin\"
+        Write-Host "Deployment completed successfully! Server updated."
+      shell: powershell

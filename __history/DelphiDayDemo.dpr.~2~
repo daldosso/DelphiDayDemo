@@ -1,0 +1,40 @@
+program DelphiDayDemo;
+
+{$APPTYPE CONSOLE}
+
+uses
+  System.SysUtils,
+  WiRL.Core.Engine,
+  WiRL.http.Server,
+  WiRL.http.Server.Indy; // Usiamo Indy che è integrato in Delphi
+
+var
+  LServer: TWiRLServer;
+begin
+  try
+    Writeln('Avvio del server WiRL per il DelphiDay...');
+
+    // 1. Creiamo l'istanza del server HTTP (usa Indy sotto il cofano)
+    LServer := TWiRLServer.Create(nil);
+    try
+      // 2. Configura la porta di ascolto
+      LServer.Port := 8080;
+
+      // 3. Aggiungiamo un motore WiRL all'indirizzo "/rest"
+      LServer.AddEngine('/rest');
+
+      // 4. Avviamo il server
+      LServer.Active := True;
+      Writeln('Server in ascolto su http://localhost:8080/rest');
+      Writeln('Premi INVIO per fermare il server.');
+      Readln;
+
+    finally
+      LServer.Free;
+    end;
+
+  except
+    on E: Exception do
+      Writeln(E.ClassName, ': ', E.Message);
+  end;
+end.
