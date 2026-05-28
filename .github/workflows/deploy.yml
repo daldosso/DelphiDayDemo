@@ -1,36 +1,49 @@
 name: DelphiDay CD Simple Pipeline
 
-# 1. Trigger the workflow only on push to the main branch
 on:
   push:
     branches: [ "main" ]
 
 jobs:
   deploy_job:
-    # 2. Force the execution on your specific local runner
     runs-on: self-hosted
 
     steps:
-    # 3. Pull the latest code and assets from the repository
     - name: Checkout Source Code
       uses: actions/checkout@v4
 
-    # 4. Verification Step: Ensure the executable was compiled via IDE
+    # 1. Vediamo cosa vede davvero il runner nella cartella
+    - name: Debug - List Files
+      run: |
+        Write-Host "--- Contenuto della cartella corrente ---"
+        Get-ChildItem -Recurse -Depth 2
+      shell: powershell
+
+    # 2. Controllo dell'eseguibile (corretto per evitare falsi negativi)
     - name: Verify Compiled Binary
       run: |
-        if (Test-Path "Win32\Release\DelphiDayDemo.exe") {
-            Write-Host "Success: DelphiDayDemo.exe found and verified!"
+        $exePath = "Win32\Release\DelphiDayDemo.exe"
+        if (Test-Path $exePath) {
+            Write-Host "Success: DelphiDayDemo.exe found!"
         } else {
-            Write-Error "Error: Executable not found. Did you forget to build in Release mode inside RAD Studio?"
+            Write-Warning "ATTENZIONE: L'eseguibile non è presente in $exePath"
+            Write-Warning "Hai fatto il push dell'eseguibile su Git? Se è nel .gitignore, la pipeline fallirà qui."
             exit 1
         }
       shell: powershell
 
-    # 5. Deployment Step: Copy the binary to the production environment
+    # 3. Creazione cartella di destinazione automatica + Copia
     - name: Deploy to Live Server
       run: |
-        Write-Host "Deploying executable to production environment..."
-        # Copying the file and overwriting any existing version cleanly
-        xcopy /y "Win32\Release\DelphiDayDemo.exe" "C:\LiveServer\bin\"
-        Write-Host "Deployment completed successfully! Server updated."
+        $destination = "C:\LiveServer\bin\"
+        
+        # Se la cartella di destinazione non esiste, la creiamo noi
+        if (-not (Test-Path $destination)) {
+            New-Item -ItemType Directory -Force -Path $destination
+        }
+        
+        Write-Host "Deploying executable to $destination ..."
+        # Usiamo Copy-Item di PowerShell, più nativo e parlante di xcopy
+        Copy-Item -Path "Win32\Release\DelphiDayDemo.exe" -Destination $destination -Force
+        Write-Host "Deployment completed successfully!"
       shell: powershell
