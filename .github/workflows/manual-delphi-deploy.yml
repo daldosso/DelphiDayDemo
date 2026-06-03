@@ -1,0 +1,42 @@
+name: Manual Delphi Build and Deploy
+
+# Enable manual trigger from the GitHub Actions UI
+on:
+  workflow_dispatch:
+
+jobs:
+  build_and_deploy:
+    runs-on: self-hosted
+
+    steps:
+      # 1. Download source code from the repository
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      # 2. Build the project using MSBuild
+      # Note: Adjust the rsvars.bat path to match your Delphi version/installation
+      - name: Compile Delphi Project
+        run: |
+          call "C:\Program Files (x86)\Embarcadero\Studio\23.0\bin\rsvars.bat"
+          msbuild DelphiDayDemo.dproj /p:Config=Release /t:Build
+        shell: cmd
+
+      # 3. Ensure the binary was created successfully
+      - name: Verify Compiled Binary
+        run: |
+          if (Test-Path "Win32\Release\DelphiDayDemo.exe") {
+              Write-Host "Verification Success: DelphiDayDemo.exe found."
+          } else {
+              Write-Error "Verification Failed: Executable not found in Win32\Release."
+              exit 1
+          }
+        shell: powershell
+
+      # 4. Deployment to the production directory
+      - name: Deploy to Live Server
+        run: |
+          $dest = "C:\LiveServer\bin\"
+          if (-not (Test-Path $dest)) { New-Item -ItemType Directory -Force -Path $dest }
+          Copy-Item -Path "Win32\Release\DelphiDayDemo.exe" -Destination $dest -Force
+          Write-Host "Deployment completed successfully to $dest"
+        shell: powershell
