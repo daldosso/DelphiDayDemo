@@ -1,0 +1,23 @@
+name: Select Environment Demo
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_env:
+        description: 'Select the target environment'
+        type: choice
+        required: true
+        default: 'staging'
+        options:
+          - dev
+          - staging
+          - production
+
+jobs:
+  deploy:
+    # Dynamically set the environment based on the user's choice
+    environment: ${{ github.event.inputs.target_env }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Echo selected environment
+        run: echo "Running pipeline targeting the ${{ github.event.inputs.target_env }} environment."
