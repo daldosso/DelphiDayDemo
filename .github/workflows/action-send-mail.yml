@@ -1,0 +1,55 @@
+name: Invia Email Notifica
+
+on:
+  workflow_dispatch:           # Esegui manualmente
+  push:
+    branches: [ main ]
+  pull_request:
+    types: [closed]
+
+jobs:
+  send-email:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Invia Email
+        uses: dawidd6/action-send-mail@v3
+        with:
+          # Configurazione server SMTP (esempio con Gmail)
+          server_address: smtp.gmail.com
+          server_port: 465
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
+          subject: "✅ Deploy completato - ${{ github.repository }}"
+          
+          # Destinatari
+          to: tuo@email.com
+          from: GitHub Actions <github@tuodominio.com>
+          
+          # Corpo dell'email
+          body: |
+            Ciao,
+            
+            Il workflow **${{ github.workflow }}** è terminato con successo.
+            
+            Repository: ${{ github.repository }}
+            Branch: ${{ github.ref }}
+            Commit: ${{ github.sha }}
+            Autore: ${{ github.actor }}
+            
+            Link al workflow: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            
+            Data: $(date)
+            
+          # Opzionale: allegati
+          # attachments: path/to/file1.txt,path/to/file2.zip
+          
+          # Opzionale: HTML
+          convert_markdown: true
+          html_body: |
+            <h2>Deploy Completato ✅</h2>
+            <p><strong>Repository:</strong> ${{ github.repository }}</p>
+            <p><a href="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}">Vedi i dettagli</a></p>

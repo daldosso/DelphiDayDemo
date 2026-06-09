@@ -12,6 +12,6 @@ jobs:
 
       - name: Hello World
         run: |
-          echo "🚀 Hello World from GitHub Actions!"
-          echo "📅 Data e ora: $(date)"
-          echo "🔧 Runner: ${{ runner.os }}"
+          echo "Hello World from GitHub Actions!"
+          echo "Data e ora: $(date)"
+          echo "Runner: ${{ runner.os }}"

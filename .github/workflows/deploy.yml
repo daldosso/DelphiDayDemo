@@ -12,14 +12,12 @@ jobs:
     - name: Checkout Source Code
       uses: actions/checkout@v4
 
-    # 1. Vediamo cosa vede davvero il runner nella cartella
     - name: Debug - List Files
       run: |
         Write-Host "--- Contenuto della cartella corrente ---"
         Get-ChildItem -Recurse -Depth 2
       shell: powershell
 
-    # 2. Controllo dell'eseguibile (corretto per evitare falsi negativi)
     - name: Verify Compiled Binary
       run: |
         $exePath = "Win32\Release\DelphiDayDemo.exe"
@@ -32,12 +30,10 @@ jobs:
         }
       shell: powershell
 
-    # 3. Creazione cartella di destinazione automatica + Copia
     - name: Deploy to Live Server
       run: |
         $destination = "C:\LiveServer\bin\"
         
-        # Se la cartella di destinazione non esiste, la creiamo noi
         if (-not (Test-Path $destination)) {
             New-Item -ItemType Directory -Force -Path $destination
         }
